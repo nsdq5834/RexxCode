@@ -9,6 +9,8 @@
    storage devices, we will obtain the contents of the file system on each
    device and do a simple demographic analysis of the file types that are
    found.
+   
+   File System File Type Demographics --> fsftdemog
 
    See if we were passed an argument.  If so, see if it is equal to the
    word debug. If it is, set a logic flag that we will use to control the
@@ -20,13 +22,37 @@
    execution.
    
 */
+
 debugFlag = 0
+driveOption = 'LOCAL'
+Drives. = ''
 
 arg passedValue
 
 if passedValue = 'DEBUG' then
   debugFlag = 1
+  
+call IsoDrives
 
+say Drives.0 driveOption 'drives detected'
+
+exit
+
+IsoDrives: procedure EXPOSE driveOption Drives.
+
+UsedDrives = strip(SysDriveMap(,driveOption),'B') || ' '
+NumUsedDrives = length(UsedDrives) / 3
+
+drivePoint = 1 
+
+do curDrive = 1 to NumUsedDrives
+  Drives.curDrive = substr(UsedDrives,drivePoint,2)
+  drivePoint = drivePoint + 3
+end curDrive
+
+Drives.0 = curDrive - 1
+
+return
 
 /*
   The IsoFname function takes a fully qualified file name and strips off the
