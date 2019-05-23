@@ -24,17 +24,66 @@
 */
 
 debugFlag = 0
-driveOption = 'LOCAL'
+driveOption = 'USED'
 Drives. = ''
 
 arg passedValue
 
 if passedValue = 'DEBUG' then
   debugFlag = 1
-  
+
+/*
+  The IsoDrives procedure is used to locate drives of a particular type that
+  are accessible to the system. Use the SysDriveMap function to obtain the list
+  of drives. Take the returned information string and break it down into the 
+  drive letters and place them into the Drives. stem variable.
+*/
+
+ExtensionValues = .array~new(0,2)
+ExtensionValues[1,1] = 'INI'
+ExtensionValues[1,2] = 1
+ 
 call IsoDrives
 
+if Drives.0 = 0 then exit
+
 say Drives.0 driveOption 'drives detected'
+
+do drivePointer = 1 to 1
+  
+  filePattern = 'D:\*.*'
+  sftRC = SysFileTree(filePattern,retFiles,'FS')
+  
+  if retFiles.0 = 0 then iterate
+  
+  do filePointer = 1 to retFiles.0
+  
+    parse var retFiles.filePointer sflDate sflTime sflSize sflAttrib sflFname
+	extType = IsoExtension(sflFname)
+
+	if ExtensionValues~hasItem(extType) then
+	  do
+	    IndexValues = ExtensionValues~index(extType)
+		curIdx = IndexValues[1]
+		ExtensionValues[curIdx,2] = ExtensionValues[curIdx,2] + 1
+	  end
+	else
+      do
+	    NextIndex = ExtensionValues~last
+		NextIdx = NextIndex[1] + 1
+		ExtensionValues[NextIdx,1] = extType
+		ExtensionValues[NextIdx,2] = 1
+      end
+	
+  end filePointer
+  
+end drivePointer
+
+TotalItems = ExtensionValues~items / 2
+
+do itemPoint = 1 to TotalItems
+  say ExtensionValues[itemPoint,1] ExtensionValues[itemPoint,2]
+end itemPoint
 
 exit
 
@@ -59,7 +108,7 @@ return
   path information so we are left with the simple file name.
 */
 
-IsoFname: procedure
+IsoExtension: procedure
 
 arg FullFileName
 OnlyFileName = ''
@@ -70,8 +119,7 @@ lengthFFN1 = lengthFFN
 
 do pointFFN = lengthFFN to 1 by -1
 
-
-  if substr(FullFileName,pointFFN,1) = '\' then
+  if substr(FullFileName,pointFFN,1) = '.' then
     do
 	  lengthFFN1 = lengthFFN1 - pointFFN
 	  pointFFN1 = pointFFN + 1
