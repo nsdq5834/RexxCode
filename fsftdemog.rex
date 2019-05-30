@@ -4,6 +4,7 @@
    
    Base code	05/22/2019
    Revision 1   05/29/2019
+   Revision 2   05/30/2019
    
    This is a simple homegrown utility program that determines the storage
    drives that are available on the system. Once we have a list of all the 
@@ -16,17 +17,14 @@
    See if we were passed an argument.  If so, see if it is equal to the
    word debug. If it is, set a logic flag that we will use to control the
    messages we will write to our log file.   
-
-   Next identify the input file that contains the list of the base
-   directories/folders that we want to make backups from. Create a unique
-   file name that we can use for our log file that will track the programs
-   execution.
    
 */
 
 debugFlag = 0
 driveOption = 'USED'
-Drives. = ''
+Drives. = null
+extName. = null
+extType. = null
 
 arg passedValue
 
@@ -40,9 +38,7 @@ if passedValue = 'DEBUG' then
   drive letters and place them into the Drives. stem variable.
 */
 
-ExtensionValues = .array~new(0,2)
-ExtensionValues[1,1] = 'INI'
-ExtensionValues[1,2] = 1
+
  
 call IsoDrives
 
