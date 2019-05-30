@@ -20,11 +20,13 @@
    
 */
 
+/* Define some variables and initialize them.                                */
+
 debugFlag = 0
 driveOption = 'USED'
-Drives. = null
-extName. = null
-extType. = null
+Drives = .stem~new
+extName = .stem~new
+extCntr = .stem~new
 
 arg passedValue
 
@@ -60,21 +62,22 @@ do drivePointer = 1 to 1
 
 	if extType = '*BOGUS*' then iterate
 
-	if ExtensionValues~hasItem(extType) then
+	if extName~hasItem(extType) then
 	  do
-	    IndexValues = ExtensionValues~index(extType)
+	    IndexValues = extName~index(extType)
 		curIdx = IndexValues[1]
-		ExtensionValues[curIdx,2] = ExtensionValues[curIdx,2] + 1
+		extCntr[curIdx] = extCntr[curIdx] + 1
 	  end
 	else
       do
-	    NextIndex = ExtensionValues~last
+	    NextIndex = extName~last
 		NextIdx = NextIndex[1] + 1
-		ExtensionValues[NextIdx,1] = extType
-		ExtensionValues[NextIdx,2] = 1
+		extType[NextIdx] = extType
+		extCntr[NextIdx] = 1
       end
 	
   end filePointer
+  exit
  
 /*
 	ExtensionValues~items returns the total number of items that are in the
