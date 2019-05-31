@@ -5,6 +5,7 @@
    Base code	05/22/2019
    Revision 1   05/29/2019
    Revision 2   05/30/2019
+   Revision 3   05/31/2019
    
    This is a simple homegrown utility program that determines the storage
    drives that are available on the system. Once we have a list of all the 
@@ -39,8 +40,6 @@ if passedValue = 'DEBUG' then
   of drives. Take the returned information string and break it down into the 
   drive letters and place them into the Drives. stem variable.
 */
-
-
  
 call IsoDrives
 
@@ -48,52 +47,57 @@ if Drives.0 = 0 then exit
 
 say Drives.0 driveOption 'drives detected'
 
-do drivePointer = 1 to 1
+*/	Process all of the drives that we were able to detect.                   */
+
+do drivePointer = 1 to Drives.0
   
-  filePattern = 'D:\*.*'
+  filePattern = Drives.drivePointer || '\*.*'
   sftRC = SysFileTree(filePattern,retFiles,'FS')
   
   if retFiles.0 = 0 then iterate
+
+/*	Process all of the files that SysFileTree has returned in retFiles stem  */
   
   do filePointer = 1 to retFiles.0
   
     parse var retFiles.filePointer sflDate sflTime sflSize sflAttrib sflFname
 	extType = IsoExtension(sflFname)
+	
+/*	See if we have what appears to be a valid file extension.                */
 
 	if extType = '*BOGUS*' then iterate
+	
+/*
+	The following if statement determines if we have already encountered the
+	extension value that is in extType.  If we have, we will increment the
+	count for that extension.  If we have not, we will add the new extension
+	value to the extName stem, and then set the count to 1 in extCntr.
+*/
 
 	if extName~hasItem(extType) then
 	  do
-	    IndexValues = extName~index(extType)
-		curIdx = IndexValues[1]
+	    curIdx = extName~index(extType)
 		extCntr[curIdx] = extCntr[curIdx] + 1
 	  end
 	else
       do
-	    NextIndex = extName~last
-		NextIdx = NextIndex[1] + 1
-		extType[NextIdx] = extType
+	    NextIndex = extName~items
+		NextIdx = (extName~items) + 1
+		extName[NextIdx] = extType
 		extCntr[NextIdx] = 1
       end
 	
   end filePointer
-  exit
- 
+  
 /*
-	ExtensionValues~items returns the total number of items that are in the
-	array. Since our array is [N,2], dividing the total number of items by
-	2 gives us the number of rows in the array.
+	extName~items indicates the number of values in the extName stem.        
 	
 	GapElements is the upper limit for the gap or increments values we will
 	need to implement the Shell or diminishing increment sort.
 */ 
 
-  TotalElements = (ExtensionValues~items) / 2
+  TotalElements = extName~items
   GapElements = TotalElements / 3 
-  
-do ii = 1 to TotalElements
- say ExtensionValues[ii,1] ' <---> 'ExtensionValues[ii,2]
-end ii  
  
 /* Set up some variables so we can calculate our gap or increment values.    */
 
@@ -101,54 +105,70 @@ end ii
   incVal = 0
   shellInc. = null
   
+/*	Compute some increment or gap values using a formula suggested by Knuth. */
+  
   do until incVal > GapElements
     ii = ii + 1
     incVal = ((3 ** ii) - 1) / 2
     shellInc.ii = incVal
   end
 
-/*  Decrement ii by 1 to point to last usable gap value */
+
+/*
+	The following resources were used to code the Shell sort.
+
+	https://rosettacode.org/wiki/Sorting_algorithms/Shell_sort#ooRexx
+	https://en.wikipedia.org/wiki/Shellsort
+
+	From the previous do loop, ii points at the last calculated increment or
+	gap value that we calculated. The last element will be greater that the
+	upper limit that we specified in GapElements. We will set our increment
+	starting index to ii - 1.
+*/
 
   incStart = ii - 1
   
+/*
+	The Shell sort consists of three loop structures. The first loop steps
+	through the calulated gaps from the largest value down to a gap value of
+	1. The other loop structures are the outer loop and the inner loop. The 
+	current gap value dictates how we process through the outer/inner loops.
+*/
+
   do gapPoint = incStart to 1 by -1
+  
     currentGap = shellInc.gapPoint
+	
     do outerP = currentGap to TotalElements - 1
-	  tempVal1 = ExtensionValues[outerP,1]
-	  tempVal2 = ExtensionValues[outerP,2]
-	  innerP = outerP + 1
-	  loop label innerP while innerP >= currentGap
-	    tPoint = innerP - currentGap
-		if \(ExtensionValues[tPoint,2] > tempVal2) then leave innerP
-		ExtensionValues[innerP,1] = ExtensionValues[tPoint,1]
-		ExtensionValues[innerP,2] = ExtensionValues[tPoint,2]
+	
+	  tempName = extName[outerP]
+	  tempCntr = extCntr[outerP]
+	  innerP = outerP
+	  
+	  loop label innerP while innerP >= currentGap & ,
+	   extCntr[innerP - currentGap] < tempCntr
+	   
+		extName[innerP] = extName[innerP - currentGap]
+		extCntr[innerP] = extCntr[innerP - currentGap]
 		innerP = innerP - currentGap
+		
 	  end innerP
-	  ExtensionValues[innerP,1] = tempVal1
-	  ExtensionValues[innerP,2] = tempVal2
+	  
+	  extName[innerP] = tempName
+	  extCntr[innerP] = tempCntr
+	  
 	end outerP
+	
   end gapPoint
   
+  say 'Breakdown for Drive ' Drives.drivePointer
+  say ' '
+  
+  do kkk = 1 to 15
+    say extName[kkk] ' <--> ' extCntr[kkk]
+  end kkk
+  
 end drivePointer
-
-
-
-/* https://rosettacode.org/wiki/Sorting_algorithms/Shell_sort#ooRexx 
-
-  loop label inc while inc > 0
-    loop i_ = inc to n - 1
-      temp = ra~get(i_)
-      j_ = i_
-      loop label j_ while j_ >= inc
-        if \(ra~get(j_ - inc) > temp) then leave j_
-        ra~set(j_, ra~get(j_ - inc))
-        j_ = j_ - inc
-        end j_
-      ra~set(j_, temp)
-      end i_
-    inc = format(inc / 2.2,, 0) -- rounding
-    end inc
-*/
 
 exit
 
@@ -169,8 +189,8 @@ Drives.0 = curDrive - 1
 return
 
 /*
-  The IsoFname function takes a fully qualified file name and strips off the
-  path information so we are left with the simple file name.
+  The IsoExtension is used to isolate what appears to be a files extension
+  value. 
 */
 
 IsoExtension: procedure
