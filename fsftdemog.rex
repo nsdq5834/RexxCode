@@ -47,7 +47,7 @@ if Drives.0 = 0 then exit
 
 say Drives.0 driveOption 'drives detected'
 
-*/	Process all of the drives that we were able to detect.                   */
+/*s	Process all of the drives that we were able to detect.                   */
 
 do drivePointer = 1 to Drives.0
   
@@ -189,7 +189,7 @@ Drives.0 = curDrive - 1
 return
 
 /*
-  The IsoExtension is used to isolate what appears to be a files extension
+  The IsoExtension is used to isolate what appears to be a file's extension
   value. 
 */
 
@@ -198,22 +198,23 @@ IsoExtension: procedure
 arg FullFileName
 OnlyFileName = ''
 
+/*	Clean up the passed in file name, and then obtain it's length.           */
+
 FullFileName = strip(FullFileName,'B')
 lengthFFN = length(FullFileName)
 lengthFFN1 = lengthFFN
+periodPos = lastpos('.',FullFileName)
 
-do pointFFN = lengthFFN to 1 by -1
+/*	Eliminate files with no period and any files with period in position 1.  */
 
-  if substr(FullFileName,pointFFN,1) = '.' then
-    do
-	  lengthFFN1 = lengthFFN1 - pointFFN
-	  pointFFN1 = pointFFN + 1
-	  OnlyFileName = substr(FullFileName,pointFFN1,lengthFFN1)
-	  leave
-	end
-	
-end pointFFN
+if periodPos == 0 then OnlyFileName = '*BOGUS*'
 
-if pointFFN < 2 then OnlyFileName = '*BOGUS*'
+if periodPos < 2 then OnlyFileName = '*BOGUS*'
+
+/*	Arbitrary cut off value for the size of the file extension.              */
+
+if lengthFFN - periodPos > 10 then OnlyFileName = '*BOGUS*'
+
+OnlyFileName = substr(FullFileName,periodPos+1,lengthFFN-periodPos)
 
 return OnlyFileName
