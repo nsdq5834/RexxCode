@@ -181,6 +181,11 @@ do drivePointer = 1 to Drives.0
     say extName[kkk] ' <--> ' extCntr[kkk]
   end kkk
   
+/*	Clear our two stem variables.                                            */
+  
+  extName~empty
+  extCntr~empty
+  
 end drivePointer
 
 exit
