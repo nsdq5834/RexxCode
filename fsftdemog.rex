@@ -6,6 +6,7 @@
    Revision 1   05/29/2019
    Revision 2   05/30/2019
    Revision 3   05/31/2019
+   Revision 4   06/02/2019
    
    This is a simple homegrown utility program that determines the storage
    drives that are available on the system. Once we have a list of all the 
@@ -47,7 +48,13 @@ if Drives.0 = 0 then exit
 
 say Drives.0 driveOption 'drives detected'
 
-/*s	Process all of the drives that we were able to detect.                   */
+if Drives.0 = 0 then
+  do
+    say 'No drives of type' driveOption 'were detected'
+	exit
+  end
+
+/*	Process all of the drives that we were able to detect.                   */
 
 do drivePointer = 1 to Drives.0
   
@@ -160,6 +167,12 @@ do drivePointer = 1 to Drives.0
 	end outerP
 	
   end gapPoint
+  
+/*
+	Currently echoing out the counts for the top 15 file types by count that
+	were observed on the current drive. May change this at some point to able
+	different option or options for outputting the data.
+*/
   
   say 'Breakdown for Drive ' Drives.drivePointer
   say ' '
