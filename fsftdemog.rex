@@ -7,6 +7,7 @@
    Revision 2   05/30/2019
    Revision 3   05/31/2019
    Revision 4   06/02/2019
+   Revision 5	06/02/2019
    
    This is a simple homegrown utility program that determines the storage
    drives that are available on the system. Once we have a list of all the 
@@ -18,7 +19,16 @@
 
    See if we were passed an argument.  If so, see if it is equal to the
    word debug. If it is, set a logic flag that we will use to control the
-   messages we will write to our log file.   
+   messages we will write to our log file.
+   
+   potential keyword adds:
+   output=csv or text
+   drivetype=used etc
+   detail=full or summary
+   debug=     not sure on this one yet.
+   
+   consider a simple function to break down the options.
+   possibly use an array to house the keywords and their status.
    
 */
 
@@ -29,6 +39,16 @@ driveOption = 'USED'
 Drives = .stem~new
 extName = .stem~new
 extCntr = .stem~new
+
+parmValues = .array~new(4,2)
+parmValues[1,1] = 'OUTPUT'
+parmValues[2,1] = 'DRIVETYPE'
+parmValues[3,1] = 'DETAIL'
+parmValues[4,1] = 'DEBUG'
+
+do ii = 1 to 4
+  parmValues[ii,2] = 'NO'
+end ii
 
 arg passedValue
 
