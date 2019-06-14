@@ -45,15 +45,25 @@ parmValues[1,1] = 'OUTPUT'
 parmValues[2,1] = 'DRIVETYPE'
 parmValues[3,1] = 'DETAIL'
 parmValues[4,1] = 'DEBUG'
-
-do ii = 1 to 4
-  parmValues[ii,2] = 'NO'
-end ii
+parmValues[1,2] = 'TERMINAL'
+parmValues[2,2] = 'USED'
+parmValues[3,2] = 'SUMMARY'
+parmValues[4,2] = 'NO'
 
 arg passedValue
 
-if passedValue = 'DEBUG' then
-  debugFlag = 1
+numParms = words(passedValues)
+
+if numParms = 0 then
+  do
+    say 'All parameters set to their default values'
+	say parmValues[1,1] '=' parmValues[1,2]
+	say parmValues[2,1] '=' parmValues[2,2]
+	say parmValues[3,1] '=' parmValues[2,2]
+	say parmValues[4,1] '=' parmValues[2,2]
+  end
+  
+ exit
 
 /*
   The IsoDrives procedure is used to locate drives of a particular type that
@@ -256,3 +266,10 @@ if lengthFFN - periodPos > 10 then OnlyFileName = '*BOGUS*'
 OnlyFileName = substr(FullFileName,periodPos+1,lengthFFN-periodPos)
 
 return OnlyFileName
+
+/*
+	Simple procedure to process any passesd parameters.
+*/
+
+IsoParms: procedure EXPOSE driveOption
+return
