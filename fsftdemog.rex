@@ -290,5 +290,14 @@ if eqPos = 0 then
   end	
   
 parse var subParm sP1 '=' sP2
+
+spIndex = parmValues~index(sP1)
+
+if .nil = parmValues~index(sP1) then
+  do
+    say 'Unrecognized parameter value passed at invocation -->' sP1
+	subParm = '##'
+	return
+  end	
   
 return
