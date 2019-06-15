@@ -50,8 +50,7 @@ parmValues[2,2] = 'USED'
 parmValues[3,2] = 'SUMMARY'
 parmValues[4,2] = 'NO'
 
-arg passedValue
-
+arg passedValues
 numParms = words(passedValues)
 
 if numParms = 0 then
@@ -59,11 +58,20 @@ if numParms = 0 then
     say 'All parameters set to their default values'
 	say parmValues[1,1] '=' parmValues[1,2]
 	say parmValues[2,1] '=' parmValues[2,2]
-	say parmValues[3,1] '=' parmValues[2,2]
-	say parmValues[4,1] '=' parmValues[2,2]
+	say parmValues[3,1] '=' parmValues[3,2]
+	say parmValues[4,1] '=' parmValues[4,2]
   end
+
+cntParm = 0
+
+loop label cntParm while cntParm < numParms & ,
+	   numParms > 0
+  cntParm = cntParm + 1
+  subParm = word(passedValues,cntParm)
+  call IsoParms  
+end cntParm	   
   
- exit
+exit
 
 /*
   The IsoDrives procedure is used to locate drives of a particular type that
@@ -271,5 +279,16 @@ return OnlyFileName
 	Simple procedure to process any passesd parameters.
 */
 
-IsoParms: procedure EXPOSE driveOption
+IsoParms: procedure EXPOSE parmValues subParm
+
+eqPos = pos('=',subParm,1)
+if eqPos = 0 then
+  do
+    say 'Badly formed parameter passed at invocation -->' subParm
+	subParm = '##'
+	return
+  end	
+  
+parse var subParm sP1 '=' sP2
+  
 return
