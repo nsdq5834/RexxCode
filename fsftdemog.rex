@@ -8,6 +8,7 @@
    Revision 3   05/31/2019
    Revision 4   06/02/2019
    Revision 5	06/02/2019
+   Revision 6	06/16/2019
    
    This is a simple homegrown utility program that determines the storage
    drives that are available on the system. Once we have a list of all the 
@@ -282,6 +283,7 @@ return OnlyFileName
 IsoParms: procedure EXPOSE parmValues subParm
 
 eqPos = pos('=',subParm,1)
+
 if eqPos = 0 then
   do
     say 'Badly formed parameter passed at invocation -->' subParm
@@ -298,6 +300,67 @@ if .nil = parmValues~index(sP1) then
     say 'Unrecognized parameter value passed at invocation -->' sP1
 	subParm = '##'
 	return
-  end	
+  end
+
+select
+  when sP1 = 'OUTPUT' then
+    do
+	  if sP2 ='' | sP2 = '' then
+	    noop
+	end
+  when sP1 = 'DRIVETYPE' then
+    do
+	end
+  when sP1 = 'DETAIL' then
+    do
+	end
+  when sP1 = 'DEBUG' then
+    do
+	end
+end  
   
 return
+
+/*
+	The following procedure is used to set up values that can be used to test
+	parameters that may be passed to the program at invocation time. This pro-
+	has to be tailored for each program it is used in.
+	Future thought, externalize the values to a file or files to eliminate the
+	hard coding of values.
+*/
+setParameters: PROCEDURE EXPOSE parmValues
+
+parmValues = .array~new(4,2)
+parmValues[1,1] = 'OUTPUT'
+parmValues[2,1] = 'DRIVETYPE'
+parmValues[3,1] = 'DETAIL'
+parmValues[4,1] = 'DEBUG'
+
+pv1 = .array~new(2)
+pv1[1] = 'TERMINAL'
+pv1[2] = 'FILE'
+parmValues[1,2] = pv1
+
+pv2 = .array~new(2)
+pv2[1] = 'USED'
+pv2[2] = 'FREE'
+pv2[3] = 'LOCAL'
+pv2[4] = 'REMOTE'
+pv2[5] = 'REMOVABLE'
+pv2[6] = 'CDROM'
+pv2[7] = 'RAMDISK'
+parmValues[2,2] = pv2
+
+pv3 = .array~new(2)
+pv3[1] = 'SUMMARY'
+pv3[2] = 'DETAIL'
+pv3[3] = 'CSV'
+parmValues[3,2] = pv3
+
+pv4 = .array~new(2)
+pv4[1] = 'TERMINAL'
+pv4[2] = 'FILE'
+parmValues[4,2] = pv4
+
+return
+
