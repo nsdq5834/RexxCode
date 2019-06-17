@@ -7,8 +7,9 @@
    Revision 2   05/30/2019
    Revision 3   05/31/2019
    Revision 4   06/02/2019
-   Revision 5	06/02/2019
-   Revision 6	06/16/2019
+   Revision 5   06/02/2019
+   Revision 6   06/16/2019
+   Revision 7   06/17/2019
    
    This is a simple homegrown utility program that determines the storage
    drives that are available on the system. Once we have a list of all the 
@@ -41,15 +42,9 @@ Drives = .stem~new
 extName = .stem~new
 extCntr = .stem~new
 
-parmValues = .array~new(4,2)
-parmValues[1,1] = 'OUTPUT'
-parmValues[2,1] = 'DRIVETYPE'
-parmValues[3,1] = 'DETAIL'
-parmValues[4,1] = 'DEBUG'
-parmValues[1,2] = 'TERMINAL'
-parmValues[2,2] = 'USED'
-parmValues[3,2] = 'SUMMARY'
-parmValues[4,2] = 'NO'
+parmFile = 'fsftdemog.parm'
+
+call setParameters
 
 arg passedValues
 numParms = words(passedValues)
@@ -302,35 +297,70 @@ if .nil = parmValues~index(sP1) then
 	return
   end
 
-select
-  when sP1 = 'OUTPUT' then
-    do
-	  if sP2 ='' | sP2 = '' then
-	    noop
-	end
-  when sP1 = 'DRIVETYPE' then
-    do
-	end
-  when sP1 = 'DETAIL' then
-    do
-	end
-  when sP1 = 'DEBUG' then
-    do
-	end
-end  
-  
 return
 
 /*
 	The following procedure is used to set up values that can be used to test
-	parameters that may be passed to the program at invocation time. This pro-
-	has to be tailored for each program it is used in.
-	Future thought, externalize the values to a file or files to eliminate the
-	hard coding of values.
+	parameters that may be passed to the program at invocation time. The pro-
+	cedure is coded so that it can be used in multiple programs. The variable
+	parmFile is set to the name of a parameter file that contains the parameter
+	settings.  Each line if the parameter file consists if the parameter and
+	all of the possible values it may be set to.  These are all space delimited
+	so that they can be parsed.
 */
-setParameters: PROCEDURE EXPOSE parmValues
 
-parmValues = .array~new(4,2)
+setParameters: PROCEDURE EXPOSE parmFile parmValues
+
+/*	Make sure the parameter file exists.                                     */
+
+if \ SysFileExists(parmFile) then
+  do
+    say 'Unable to locate ' parmFile
+	say 'Terminating program execution.'
+	exit sfeRC
+  end
+
+parmFilehandle = .stream~new(parmFile)
+parmFilehandle~open('READ')
+
+parmFilelines = (parmFilehandle~lines) - 1
+
+parmValues = .array~new(parmFilelines,2)
+
+inBuff = strip(parmFilehandle~linein,'B')
+
+if substr(inBuff,1,1) \= '*' then
+  do
+    say 'Parameter file error. First line not a comment'
+	say 'Terminating program execution'
+	exit 1000
+  end
+
+pCnt = 0
+
+do while parmFilehandle~lines \= 0
+
+  inBuff = strip(parmFilehandle~linein,'B')
+  pCnt = pCnt + 1
+  numWords = words(inBuff)
+  parmValues[pCnt,1] = word(inBuff,1)
+
+  interpret tempArray || '=.array~new(' || numWords - 1 || ')'
+
+  do pvCnt = 2 to numWords
+    tempArray[pvCnt - 1] = word(inBuff,pvCnt)
+  end pvCnt
+
+  parmValues[pCnt,2] = tempArray
+  drop tempArray
+  
+end
+
+parmFilehandle~close
+  
+return
+  
+/*
 parmValues[1,1] = 'OUTPUT'
 parmValues[2,1] = 'DRIVETYPE'
 parmValues[3,1] = 'DETAIL'
@@ -361,6 +391,5 @@ pv4 = .array~new(2)
 pv4[1] = 'TERMINAL'
 pv4[2] = 'FILE'
 parmValues[4,2] = pv4
-
-return
+*/
 
