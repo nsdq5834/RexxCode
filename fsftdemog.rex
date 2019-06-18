@@ -320,6 +320,14 @@ if \ SysFileExists(parmFile) then
 	exit sfeRC
   end
 
+/*
+	Create a handle for the parameter file and then open the file. The first
+	line of the file should be a comment. We will determine the total number
+	of lines in the file and then subtract 1 to account for the comment line.
+	Next we read in the first line and check to be sure it is a comment line.
+	If it isn't we are going to terminate the execution of the program.
+*/
+
 parmFilehandle = .stream~new(parmFile)
 parmFilehandle~open('READ')
 
@@ -336,6 +344,16 @@ if substr(inBuff,1,1) \= '*' then
 	exit 1000
   end
 
+/*
+	Process the remaining lines in the parameter file.  Each line begins with
+	the parameter itself followed by the allowable values for the parameter.
+	We are going to place the values into the parmValues array. This array is
+	going to be an N x 2 array where N is the number of lines/records that we
+	read from the parameter file. The [N,1] element is the parameter itself,
+	and the [N,2] element is a one dimensional array consisting of the allow-
+	able values.
+*/
+
 pCnt = 0
 
 do while parmFilehandle~lines \= 0
@@ -344,12 +362,18 @@ do while parmFilehandle~lines \= 0
   pCnt = pCnt + 1
   numWords = words(inBuff)
   parmValues[pCnt,1] = word(inBuff,1)
+  
+/*	Create a one dimensional temporary array to hold the parameter values.   */
 
-  interpret tempArray || '=.array~new(' || numWords - 1 || ')'
+  tempArray =.array~new(numWords - 1)
+
+/*	Process the parameter values saving them in tempArray.                   */
 
   do pvCnt = 2 to numWords
     tempArray[pvCnt - 1] = word(inBuff,pvCnt)
   end pvCnt
+
+/*	Save tempArray in the current [N,2] element of parmValues.               */
 
   parmValues[pCnt,2] = tempArray
   drop tempArray
@@ -359,37 +383,3 @@ end
 parmFilehandle~close
   
 return
-  
-/*
-parmValues[1,1] = 'OUTPUT'
-parmValues[2,1] = 'DRIVETYPE'
-parmValues[3,1] = 'DETAIL'
-parmValues[4,1] = 'DEBUG'
-
-pv1 = .array~new(2)
-pv1[1] = 'TERMINAL'
-pv1[2] = 'FILE'
-parmValues[1,2] = pv1
-
-pv2 = .array~new(2)
-pv2[1] = 'USED'
-pv2[2] = 'FREE'
-pv2[3] = 'LOCAL'
-pv2[4] = 'REMOTE'
-pv2[5] = 'REMOVABLE'
-pv2[6] = 'CDROM'
-pv2[7] = 'RAMDISK'
-parmValues[2,2] = pv2
-
-pv3 = .array~new(2)
-pv3[1] = 'SUMMARY'
-pv3[2] = 'DETAIL'
-pv3[3] = 'CSV'
-parmValues[3,2] = pv3
-
-pv4 = .array~new(2)
-pv4[1] = 'TERMINAL'
-pv4[2] = 'FILE'
-parmValues[4,2] = pv4
-*/
-
