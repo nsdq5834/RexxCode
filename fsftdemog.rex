@@ -42,9 +42,15 @@ Drives = .stem~new
 extName = .stem~new
 extCntr = .stem~new
 
-parmFile = 'fsftdemog.parm'
+/*
+	Specify the name of the parameter file and call the setParameters pro-
+	cedure.
+*/
 
+parmFile = 'fsftdemog.parm'
 call setParameters
+
+/*	See if any parameters were passed in to us.                              */
 
 arg passedValues
 numParms = words(passedValues)
